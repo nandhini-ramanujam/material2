@@ -1000,6 +1000,37 @@ describe('MdAutocomplete', () => {
       });
     }));
 
+    it('should reposition the panel when the amount of options changes', () => {
+      input.style.top = '500px';
+      input.style.position = 'relative';
+
+      typeInElement('Cali', input);
+      fixture.detectChanges();
+
+      fixture.componentInstance.trigger.openPanel();
+      fixture.detectChanges();
+
+      const inputBottom = input.getBoundingClientRect().bottom;
+      const panel = overlayContainerElement.querySelector('.mat-autocomplete-panel');
+      const panelTop = panel.getBoundingClientRect().top;
+
+      expect(Math.floor(inputBottom + 6)).toEqual(Math.floor(panelTop),
+          `Expected panel top to match input bottom when there is only one option.`);
+      expect(fixture.componentInstance.trigger.autocomplete.positionY).toEqual('below',
+          `Expected autocomplete to open below the trigger when there is only one option.`);
+
+      typeInElement('', input);
+      fixture.detectChanges();
+
+      const inputTop = input.getBoundingClientRect().top;
+      const panelBottom = panel.getBoundingClientRect().bottom;
+
+      expect(Math.floor(inputTop + 6)).toEqual(Math.floor(panelBottom),
+          `Expected panel switch to the above position if the options no longer fit.`);
+      expect(fixture.componentInstance.trigger.autocomplete.positionY).toEqual('above',
+          `Expected autocomplete positionY to be "above" if the options no longer fit.`);
+    });
+
   });
 
   describe('Option selection', () => {

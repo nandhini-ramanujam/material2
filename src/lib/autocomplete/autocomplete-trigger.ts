@@ -403,6 +403,7 @@ export class MdAutocompleteTrigger implements ControlValueAccessor, OnDestroy {
   private _resetPanel() {
     this._resetActiveItem();
     this._positionStrategy.recalculateLastPosition();
+    this._overlayRef.updatePosition();
     this.autocomplete._setVisibility();
   }
 
