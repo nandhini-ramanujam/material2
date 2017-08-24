@@ -59,9 +59,13 @@ export class Overlay {
    * @returns Reference to the created overlay.
    */
   create(config: OverlayConfig = defaultConfig): OverlayRef {
+    const backdrop = config.hasBackdrop ? this._createBackdropElement() : null;
+    const backdropHost = backdrop ? this._createPortalOutlet(backdrop) : null;
     const pane = this._createPaneElement();
     const portalOutlet = this._createPortalOutlet(pane);
-    return new OverlayRef(portalOutlet, pane, config, this._ngZone, this._keyboardDispatcher);
+
+    return new OverlayRef(portalOutlet, pane, backdropHost,
+        config, this._ngZone, this._keyboardDispatcher);
   }
 
   /**
@@ -91,6 +95,19 @@ export class Overlay {
    * Create a DomPortalOutlet into which the overlay content can be loaded.
    * @param pane The DOM element to turn into a portal outlet.
    * @returns A portal outlet for the given DOM element.
+   * Creates the DOM element that will wrap the backdrop and adds it to the overlay container.
+   * @returns Newly-created backdrop host.
+   */
+  private _createBackdropElement(): HTMLElement {
+    const pane = document.createElement('div');
+    this._overlayContainer.getContainerElement().appendChild(pane);
+    return pane;
+  }
+
+  /**
+   * Create a DomPortalHost into which the overlay content can be loaded.
+   * @param pane The DOM element to turn into a portal host.
+   * @returns A portal host for the given DOM element.
    */
   private _createPortalOutlet(pane: HTMLElement): DomPortalOutlet {
     return new DomPortalOutlet(pane, this._componentFactoryResolver, this._appRef, this._injector);

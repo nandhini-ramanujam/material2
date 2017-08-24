@@ -81,11 +81,10 @@ export class MatDialogRef<T> {
     this._containerInstance._animationStateChanged.pipe(
       filter(event => event.phaseName === 'start'),
       take(1)
-    )
-    .subscribe(() => {
+    ).subscribe(() => {
       this._beforeClose.next(dialogResult);
       this._beforeClose.complete();
-      this._overlayRef.detachBackdrop();
+      this._overlayRef.disposeBackdrop();
     });
 
     this._containerInstance._startExitAnimation();

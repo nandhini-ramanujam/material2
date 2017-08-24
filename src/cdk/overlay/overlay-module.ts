@@ -20,6 +20,7 @@ import {
 import {OverlayPositionBuilder} from './position/overlay-position-builder';
 import {OVERLAY_KEYBOARD_DISPATCHER_PROVIDER} from './keyboard/overlay-keyboard-dispatcher';
 import {ScrollStrategyOptions} from './scroll/scroll-strategy-options';
+import {MatBackdrop} from './backdrop';
 
 export const OVERLAY_PROVIDERS: Provider[] = [
   Overlay,
@@ -32,8 +33,9 @@ export const OVERLAY_PROVIDERS: Provider[] = [
 
 @NgModule({
   imports: [BidiModule, PortalModule, ScrollDispatchModule],
-  exports: [CdkConnectedOverlay, CdkOverlayOrigin, ScrollDispatchModule],
-  declarations: [CdkConnectedOverlay, CdkOverlayOrigin],
+  exports: [CdkConnectedOverlay, CdkOverlayOrigin, MatBackdrop, ScrollDispatchModule],
+  declarations: [CdkConnectedOverlay, CdkOverlayOrigin, MatBackdrop],
   providers: [OVERLAY_PROVIDERS, ScrollStrategyOptions],
+  entryComponents: [MatBackdrop],
 })
 export class OverlayModule {}

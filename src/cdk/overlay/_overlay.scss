@@ -63,8 +63,9 @@ $backdrop-animation-timing-function: cubic-bezier(0.25, 0.8, 0.25, 1) !default;
     transition: opacity $backdrop-animation-duration $backdrop-animation-timing-function;
     opacity: 0;
 
-    &.cdk-overlay-backdrop-showing {
-      opacity: 0.48;
+    // Prevent the user from interacting while the backdrop is animating.
+    &.ng-animating {
+      pointer-events: none;
     }
   }
 
