@@ -91,6 +91,9 @@ export class MdTabBody implements OnInit, AfterViewChecked {
   /** The portal host inside of this container into which the tab body content will be loaded. */
   @ViewChild(PortalHostDirective) _portalHost: PortalHostDirective;
 
+  /** Element wrapping the tab's content. */
+  @ViewChild('content') _contentElement: ElementRef;
+
   /** Event emitted when the tab begins to animate towards the center as the active tab. */
   @Output() onCentering: EventEmitter<number> = new EventEmitter<number>();
 
@@ -98,7 +101,10 @@ export class MdTabBody implements OnInit, AfterViewChecked {
   @Output() onCentered: EventEmitter<void> = new EventEmitter<void>(true);
 
   /** The tab body content to display. */
-  @Input('content') _content: TemplatePortal<any>;
+  @Input('content') _contentPortal: TemplatePortal<any>;
+
+  /** Scroll position of the tab before the user switched away. */
+  private _lastScrollPosition = 0;
 
   /** The shifted index position of the tab body, where zero represents the active center tab. */
   _position: MdTabBodyPositionState;
@@ -146,7 +152,8 @@ export class MdTabBody implements OnInit, AfterViewChecked {
    */
   ngAfterViewChecked() {
     if (this._isCenterPosition(this._position) && !this._portalHost.hasAttached()) {
-      this._portalHost.attach(this._content);
+      this._portalHost.attach(this._contentPortal);
+      this._contentElement.nativeElement.scrollTop = this._lastScrollPosition;
     }
   }
 
@@ -159,6 +166,7 @@ export class MdTabBody implements OnInit, AfterViewChecked {
   _onTranslateTabComplete(e: AnimationEvent) {
     // If the end state is that the tab is not centered, then detach the content.
     if (!this._isCenterPosition(e.toState) && !this._isCenterPosition(this._position)) {
+      this._lastScrollPosition = this._contentElement.nativeElement.scrollTop || 0;
       this._portalHost.detach();
     }
 
@@ -176,7 +184,7 @@ export class MdTabBody implements OnInit, AfterViewChecked {
   /** Whether the provided position state is considered center, regardless of origin. */
   private _isCenterPosition(position: MdTabBodyPositionState|string): boolean {
     return position == 'center' ||
-        position == 'left-origin-center' ||
-        position == 'right-origin-center';
+           position == 'left-origin-center' ||
+           position == 'right-origin-center';
   }
 }
