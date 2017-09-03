@@ -280,7 +280,9 @@ describe('MdTabGroup', () => {
 
       // Ensure that there is content and scroll down 100px.
       expect(tabElements[1].offsetHeight).toBeGreaterThan(0, 'Expected tab to have some content.');
-      tabElements[1].scrollTop = 100;
+
+      // Handle some differences in the way browsers determine what element is scrollable.
+      tabElements[1].scrollTop = tabElements[1].parentElement!.scrollTop = 100;
 
       // Move to another tab.
       testComponent.selectedIndex = 0;
@@ -292,7 +294,8 @@ describe('MdTabGroup', () => {
       fixture.detectChanges();
       tick(500);
 
-      expect(tabElements[1].scrollTop).toBe(100, 'Expected scroll position to be restored.');
+      expect(tabElements[1].scrollTop || tabElements[1].parentElement!.scrollTop)
+          .toBe(100, 'Expected scroll position to be restored.');
     }));
   });
 

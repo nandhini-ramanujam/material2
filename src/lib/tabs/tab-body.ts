@@ -18,6 +18,8 @@ import {
   AfterViewChecked,
   ViewEncapsulation,
   ChangeDetectionStrategy,
+  OnChanges,
+  SimpleChanges,
 } from '@angular/core';
 import {
   trigger,
@@ -65,6 +67,7 @@ export type MdTabBodyOriginState = 'left' | 'right';
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     'class': 'mat-tab-body',
+    '[class.mat-tab-body-active]': 'active',
   },
   animations: [
     trigger('translateTab', [
@@ -87,7 +90,7 @@ export type MdTabBodyOriginState = 'left' | 'right';
     ])
   ]
 })
-export class MdTabBody implements OnInit, AfterViewChecked {
+export class MdTabBody implements OnInit, OnChanges, AfterViewChecked {
   /** The portal host inside of this container into which the tab body content will be loaded. */
   @ViewChild(PortalHostDirective) _portalHost: PortalHostDirective;
 
@@ -102,6 +105,9 @@ export class MdTabBody implements OnInit, AfterViewChecked {
 
   /** The tab body content to display. */
   @Input('content') _contentPortal: TemplatePortal<any>;
+
+  /** Whether the tab is currently active. */
+  @Input() active: boolean;
 
   /** Scroll position of the tab before the user switched away. */
   private _lastScrollPosition = 0;
@@ -153,7 +159,24 @@ export class MdTabBody implements OnInit, AfterViewChecked {
   ngAfterViewChecked() {
     if (this._isCenterPosition(this._position) && !this._portalHost.hasAttached()) {
       this._portalHost.attach(this._contentPortal);
-      this._contentElement.nativeElement.scrollTop = this._lastScrollPosition;
+
+      if (this._lastScrollPosition) {
+        // Depending on the browser, the scrollable element can end up being
+        // either the host element or the element with all the content.
+        this._contentElement.nativeElement.scrollTop =
+          this._elementRef.nativeElement.scrollTop =
+          this._lastScrollPosition;
+      }
+    }
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    // Cache the scroll position before moving away from the tab. Note that this has to be done
+    // through change detection and as early as possible, because some browsers (namely Safari)
+    // will reset the scroll position when we switch from an absolute to a relative position.
+    if (changes.active && changes.active.previousValue) {
+      this._lastScrollPosition = this._elementRef.nativeElement.scrollTop ||
+                                 this._contentElement.nativeElement.scrollTop;
     }
   }
 
@@ -166,7 +189,6 @@ export class MdTabBody implements OnInit, AfterViewChecked {
   _onTranslateTabComplete(e: AnimationEvent) {
     // If the end state is that the tab is not centered, then detach the content.
     if (!this._isCenterPosition(e.toState) && !this._isCenterPosition(this._position)) {
-      this._lastScrollPosition = this._contentElement.nativeElement.scrollTop || 0;
       this._portalHost.detach();
     }
 
