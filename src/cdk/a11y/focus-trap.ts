@@ -12,7 +12,7 @@ import {
   Input,
   NgZone,
   OnDestroy,
-  AfterContentInit,
+  DoCheck,
   Injectable,
 } from '@angular/core';
 import {coerceBooleanProperty} from '@angular/cdk/coercion';
@@ -32,6 +32,7 @@ import {InteractivityChecker} from './interactivity-checker';
 export class FocusTrap {
   private _startAnchor: HTMLElement | null;
   private _endAnchor: HTMLElement | null;
+  private _hasAttached = false;
 
   /** Whether the focus trap is active. */
   get enabled(): boolean { return this._enabled; }
@@ -72,35 +73,35 @@ export class FocusTrap {
   /**
    * Inserts the anchors into the DOM. This is usually done automatically
    * in the constructor, but can be deferred for cases like directives with `*ngIf`.
+   * @returns Whether the focus trap managed to attach successfuly. This may not be the case
+   * if the target element isn't currently in the DOM.
    */
-  attachAnchors(): void {
+  attachAnchors(): boolean {
     // If we're not on the browser, there can be no focus to trap.
-    if (!this._platform.isBrowser) {
-      return;
-    }
-
-    if (!this._startAnchor) {
-      this._startAnchor = this._createAnchor();
-    }
-
-    if (!this._endAnchor) {
-      this._endAnchor = this._createAnchor();
+    if (!this._platform.isBrowser || this._hasAttached) {
+      this._hasAttached = true;
+      return true;
     }
 
     this._ngZone.runOutsideAngular(() => {
-      this._startAnchor!.addEventListener('focus', () => {
-        this.focusLastTabbableElement();
-      });
+      if (!this._startAnchor) {
+        this._startAnchor = this._createAnchor();
+        this._startAnchor!.addEventListener('focus', () => this.focusLastTabbableElement());
+      }
 
-      this._endAnchor!.addEventListener('focus', () => {
-        this.focusFirstTabbableElement();
-      });
-
-      if (this._element.parentNode) {
-        this._element.parentNode.insertBefore(this._startAnchor!, this._element);
-        this._element.parentNode.insertBefore(this._endAnchor!, this._element.nextSibling);
+      if (!this._endAnchor) {
+        this._endAnchor = this._createAnchor();
+        this._endAnchor!.addEventListener('focus', () => this.focusFirstTabbableElement());
       }
     });
+
+    if (this._element.parentNode) {
+      this._element.parentNode.insertBefore(this._startAnchor!, this._element);
+      this._element.parentNode.insertBefore(this._endAnchor!, this._element.nextSibling);
+      this._hasAttached = true;
+    }
+
+    return this._hasAttached;
   }
 
   /**
@@ -206,6 +207,13 @@ export class FocusTrap {
     return !!redirectToElement;
   }
 
+  /**
+   * Checks whether the focus trap has successfuly been attached.
+   */
+  hasAttached(): boolean {
+    return this._hasAttached;
+  }
+
   /** Get the first tabbable element from a DOM subtree (inclusive). */
   private _getFirstTabbableElement(root: HTMLElement): HTMLElement | null {
     if (this._checker.isFocusable(root) && this._checker.isTabbable(root)) {
@@ -287,12 +295,12 @@ export class FocusTrapFactory {
 
 /**
  * Directive for trapping focus within a region.
- * @deprecated
+ * @deprecated Use `cdkTrapFocus` instead.
  */
 @Directive({
   selector: 'cdk-focus-trap',
 })
-export class FocusTrapDeprecatedDirective implements OnDestroy, AfterContentInit {
+export class FocusTrapDeprecatedDirective implements OnDestroy, DoCheck {
   focusTrap: FocusTrap;
 
   /** Whether the focus trap is active. */
@@ -310,8 +318,10 @@ export class FocusTrapDeprecatedDirective implements OnDestroy, AfterContentInit
     this.focusTrap.destroy();
   }
 
-  ngAfterContentInit() {
-    this.focusTrap.attachAnchors();
+  ngDoCheck() {
+    if (!this.focusTrap.hasAttached()) {
+      this.focusTrap.attachAnchors();
+    }
   }
 }
 
@@ -321,7 +331,7 @@ export class FocusTrapDeprecatedDirective implements OnDestroy, AfterContentInit
   selector: '[cdkTrapFocus]',
   exportAs: 'cdkTrapFocus',
 })
-export class FocusTrapDirective implements OnDestroy, AfterContentInit {
+export class FocusTrapDirective implements OnDestroy, DoCheck {
   focusTrap: FocusTrap;
 
   /** Whether the focus trap is active. */
@@ -337,7 +347,11 @@ export class FocusTrapDirective implements OnDestroy, AfterContentInit {
     this.focusTrap.destroy();
   }
 
-  ngAfterContentInit() {
-    this.focusTrap.attachAnchors();
+  ngDoCheck() {
+    // Since the element may not be attached to the DOM (or another element)
+    // immediately, keep trying until it is.
+    if (!this.focusTrap.hasAttached()) {
+      this.focusTrap.attachAnchors();
+    }
   }
 }
