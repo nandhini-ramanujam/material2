@@ -154,7 +154,7 @@ export class MatMenu implements AfterContentInit, MatMenuPanel, OnDestroy {
   get classList(): string { return this.panelClass; }
 
   /** Event emitted when the menu is closed. */
-  @Output() closed = new EventEmitter<void | 'click' | 'keydown'>();
+  @Output() closed = new EventEmitter<void | 'click' | 'keydown' | 'tab'>();
 
   /**
    * Event emitted when the menu is closed.
@@ -169,7 +169,7 @@ export class MatMenu implements AfterContentInit, MatMenuPanel, OnDestroy {
 
   ngAfterContentInit() {
     this._keyManager = new FocusKeyManager<MatMenuItem>(this.items).withWrap().withTypeAhead();
-    this._tabSubscription = this._keyManager.tabOut.subscribe(() => this.close.emit('keydown'));
+    this._tabSubscription = this._keyManager.tabOut.subscribe(() => this.close.emit('tab'));
   }
 
   ngOnDestroy() {
