@@ -12,7 +12,11 @@ import {OverlayConfig} from './overlay-config';
 import {OverlayKeyboardDispatcher} from './keyboard/overlay-keyboard-dispatcher';
 import {Observable} from 'rxjs/Observable';
 import {Subject} from 'rxjs/Subject';
+import {fromEvent} from 'rxjs/observable/fromEvent';
 import {first} from 'rxjs/operators/first';
+import {debounceTime} from 'rxjs/operators/debounceTime';
+import {tap} from 'rxjs/operators/tap';
+import {BlockScrollStrategy} from './scroll/index';
 
 
 /**
@@ -255,6 +259,19 @@ export class OverlayRef implements PortalOutlet {
     // Forward backdrop clicks such that the consumer of the overlay can perform whatever
     // action desired when such a click occurs (usually closing the overlay).
     this._backdropElement.addEventListener('click', () => this._backdropClick.next(null));
+
+    if (!(this._config.scrollStrategy instanceof BlockScrollStrategy)) {
+      // When the user starts scrolling by mouse, disable pointer events on the backdrop. This
+      // allows for non-body scroll containers (e.g. a sidenav container), which would normally
+      // be blocked due to the backdrop, to scroll. When the user has stopped scrolling for 100ms
+      // restore the pointer events in order for the click handler to work.
+      this._ngZone.runOutsideAngular(() => {
+        fromEvent(this._backdropElement!, 'wheel').pipe(
+          tap(() => this._backdropElement!.style.pointerEvents = 'none'),
+          debounceTime(100)
+        ).subscribe(() => this._backdropElement!.style.pointerEvents = '');
+      });
+    }
 
     // Add class to fade-in the backdrop after one frame.
     requestAnimationFrame(() => {

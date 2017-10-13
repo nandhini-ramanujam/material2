@@ -1,5 +1,6 @@
 import {async, fakeAsync, tick, ComponentFixture, inject, TestBed} from '@angular/core/testing';
 import {Component, NgModule, ViewChild, ViewContainerRef} from '@angular/core';
+import {dispatchFakeEvent} from '@angular/cdk/testing';
 import {
   ComponentPortal,
   PortalModule,
@@ -427,6 +428,40 @@ describe('Overlay', () => {
       expect(children.indexOf(pane)).toBeGreaterThan(-1);
       expect(children.indexOf(backdrop))
         .toBeLessThan(children.indexOf(pane), 'Expected backdrop to be before the pane in the DOM');
+    });
+
+    it('should disable pointer events on the backdrop when scrolling', fakeAsync(() => {
+      let overlayRef = overlay.create(config);
+      overlayRef.attach(componentPortal);
+
+      viewContainerFixture.detectChanges();
+      let backdrop = overlayContainerElement.querySelector('.cdk-overlay-backdrop') as HTMLElement;
+
+      expect(backdrop.style.pointerEvents).toBeFalsy();
+
+      dispatchFakeEvent(backdrop, 'wheel');
+
+      expect(backdrop.style.pointerEvents).toBe('none');
+
+      tick(100);
+
+      expect(backdrop.style.pointerEvents).toBeFalsy();
+    }));
+
+    it('should not disable pointer events on the backdrop when scrolling is blocked', () => {
+      config.scrollStrategy = overlay.scrollStrategies.block();
+
+      let overlayRef = overlay.create(config);
+      overlayRef.attach(componentPortal);
+
+      viewContainerFixture.detectChanges();
+      let backdrop = overlayContainerElement.querySelector('.cdk-overlay-backdrop') as HTMLElement;
+
+      expect(backdrop.style.pointerEvents).toBeFalsy();
+
+      dispatchFakeEvent(backdrop, 'wheel');
+
+      expect(backdrop.style.pointerEvents).toBeFalsy();
     });
 
   });
