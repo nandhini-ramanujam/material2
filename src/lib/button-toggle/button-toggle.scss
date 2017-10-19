@@ -8,13 +8,11 @@ $mat-button-toggle-border-radius: 2px !default;
 
 .mat-button-toggle-standalone,
 .mat-button-toggle-group {
-  @include mat-elevation(2);
+  @include mat-overridable-elevation(2);
   position: relative;
   display: inline-flex;
   flex-direction: row;
-
   border-radius: $mat-button-toggle-border-radius;
-
   cursor: pointer;
   white-space: nowrap;
   overflow: hidden;
