@@ -327,6 +327,8 @@ export class CdkConnectedOverlay implements OnDestroy, OnChanges {
     }
 
     this._overlayRef = this._overlay.create(this._buildConfig());
+    this._overlayRef.attachments().subscribe(() => this.attach.emit());
+    this._overlayRef.detachments().subscribe(() => this.detach.emit());
   }
 
   /** Builds the overlay config based on the directive's inputs */
@@ -409,7 +411,6 @@ export class CdkConnectedOverlay implements OnDestroy, OnChanges {
 
     if (!this._overlayRef.hasAttached()) {
       this._overlayRef.attach(this._templatePortal);
-      this.attach.emit();
     }
 
     if (this.hasBackdrop) {
@@ -423,7 +424,6 @@ export class CdkConnectedOverlay implements OnDestroy, OnChanges {
   private _detachOverlay() {
     if (this._overlayRef) {
       this._overlayRef.detach();
-      this.detach.emit();
     }
 
     this._backdropSubscription.unsubscribe();
