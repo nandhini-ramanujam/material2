@@ -349,7 +349,9 @@ export class MatAutocompleteTrigger implements ControlValueAccessor, OnDestroy {
     const optionOffset = (activeOptionIndex + labelCount) * AUTOCOMPLETE_OPTION_HEIGHT;
     const panelTop = this.autocomplete._getScrollTop();
 
-    if (optionOffset < panelTop) {
+    if (activeOptionIndex === 0 && labelCount === 1) {
+      this.autocomplete._setScrollTop(0);
+    } else if (optionOffset < panelTop) {
       // Scroll up to reveal selected option scrolled above the panel top
       this.autocomplete._setScrollTop(optionOffset);
     } else if (optionOffset + AUTOCOMPLETE_OPTION_HEIGHT > panelTop + AUTOCOMPLETE_PANEL_HEIGHT) {
