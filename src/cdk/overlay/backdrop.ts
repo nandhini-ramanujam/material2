@@ -40,7 +40,7 @@ import {Subject} from 'rxjs/Subject';
   encapsulation: ViewEncapsulation.None,
   preserveWhitespaces: false,
 })
-export class MatBackdrop implements OnDestroy {
+export class CdkOverlayBackdrop implements OnDestroy {
   _animationState = 'visible';
   _clickStream = new Subject<void>();
   _animationStream = new Subject<AnimationEvent>();

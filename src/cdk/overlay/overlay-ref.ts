@@ -14,7 +14,7 @@ import {take} from 'rxjs/operators/take';
 import {Subject} from 'rxjs/Subject';
 import {OverlayKeyboardDispatcher} from './keyboard/overlay-keyboard-dispatcher';
 import {OverlayConfig} from './overlay-config';
-import {MatBackdrop} from './backdrop';
+import {CdkOverlayBackdrop} from './backdrop';
 import {empty} from 'rxjs/observable/empty';
 
 
@@ -31,7 +31,7 @@ export class OverlayRef implements PortalOutlet {
   private _backdropClick: Subject<any> = new Subject();
   private _attachments = new Subject<void>();
   private _detachments = new Subject<void>();
-  private _backdropInstance: MatBackdrop | null;
+  private _backdropInstance: CdkOverlayBackdrop | null;
 
   /** Stream of keydown events dispatched to this overlay. */
   _keydownEvents = new Subject<KeyboardEvent>();
@@ -92,7 +92,8 @@ export class OverlayRef implements PortalOutlet {
     this._togglePointerEvents(true);
 
     if (this._backdropHost) {
-      this._backdropInstance = this._backdropHost.attach(new ComponentPortal(MatBackdrop)).instance;
+      this._backdropInstance =
+          this._backdropHost.attach(new ComponentPortal(CdkOverlayBackdrop)).instance;
       this._backdropInstance!._setClass(this._config.backdropClass!);
     }
 
