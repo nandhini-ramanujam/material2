@@ -31,7 +31,7 @@ import {
   flush,
 } from '@angular/core/testing';
 import {FormControl, FormsModule, ReactiveFormsModule} from '@angular/forms';
-import {MatOption} from '@angular/material/core';
+import {MatOption, MatOptionSelectionChange} from '@angular/material/core';
 import {MatFormField, MatFormFieldModule} from '@angular/material/form-field';
 import {By} from '@angular/platform-browser';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
@@ -1340,7 +1340,7 @@ describe('MatAutocomplete', () => {
     it('should emit panel close event when clicking away', () => {
       expect(closingActionSpy).not.toHaveBeenCalled();
       dispatchFakeEvent(document, 'click');
-      expect(closingActionSpy).toHaveBeenCalled();
+      expect(closingActionSpy).toHaveBeenCalledWith(null);
     });
 
     it('should emit panel close event when tabbing out', () => {
@@ -1349,7 +1349,7 @@ describe('MatAutocomplete', () => {
 
       expect(closingActionSpy).not.toHaveBeenCalled();
       trigger._handleKeydown(tabEvent);
-      expect(closingActionSpy).toHaveBeenCalled();
+      expect(closingActionSpy).toHaveBeenCalledWith(null);
     });
 
     it('should not emit when tabbing away from a closed panel', () => {
@@ -1374,7 +1374,7 @@ describe('MatAutocomplete', () => {
 
       expect(closingActionSpy).not.toHaveBeenCalled();
       option.click();
-      expect(closingActionSpy).toHaveBeenCalled();
+      expect(closingActionSpy).toHaveBeenCalledWith(jasmine.any(MatOptionSelectionChange));
     });
 
     it('should close the panel when pressing escape', () => {
@@ -1382,7 +1382,7 @@ describe('MatAutocomplete', () => {
 
       expect(closingActionSpy).not.toHaveBeenCalled();
       trigger._handleKeydown(escapeEvent);
-      expect(closingActionSpy).toHaveBeenCalled();
+      expect(closingActionSpy).toHaveBeenCalledWith(null);
     });
   });
 

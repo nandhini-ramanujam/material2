@@ -21,6 +21,7 @@ import {take} from 'rxjs/operators/take';
 import {switchMap} from 'rxjs/operators/switchMap';
 import {tap} from 'rxjs/operators/tap';
 import {delay} from 'rxjs/operators/delay';
+import {map} from 'rxjs/operators/map';
 import {
   ChangeDetectorRef,
   Directive,
@@ -189,7 +190,7 @@ export class MatAutocompleteTrigger implements ControlValueAccessor, OnDestroy {
    * A stream of actions that should close the autocomplete panel, including
    * when an option is selected, on blur, and when TAB is pressed.
    */
-  get panelClosingActions(): Observable<MatOptionSelectionChange> {
+  get panelClosingActions(): Observable<MatOptionSelectionChange|null> {
     return merge(
       this.optionSelections,
       this.autocomplete._keyManager.tabOut.pipe(filter(() => this._panelOpen)),
@@ -198,6 +199,9 @@ export class MatAutocompleteTrigger implements ControlValueAccessor, OnDestroy {
       this._overlayRef ?
           this._overlayRef.detachments().pipe(filter(() => this._panelOpen)) :
           observableOf()
+    ).pipe(
+      // Normalize the output so we return a consistent type.
+      map(event => event instanceof MatOptionSelectionChange ? event : null)
     );
   }
 
