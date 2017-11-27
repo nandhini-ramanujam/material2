@@ -3,7 +3,7 @@ import {TestBed, inject} from '@angular/core/testing';
 import {OverlayPositionBuilder} from './overlay-position-builder';
 import {CdkScrollable} from '@angular/cdk/scrolling';
 import {Subscription} from 'rxjs/Subscription';
-import {ScrollDispatchModule} from '@angular/cdk/scrolling';
+import {ScrollingModule} from '@angular/cdk/scrolling';
 import {
   OverlayModule,
   Overlay,
@@ -28,7 +28,7 @@ describe('ConnectedPositionStrategy', () => {
   let overlayContainerElement: HTMLElement;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({imports: [ScrollDispatchModule, OverlayModule]});
+    TestBed.configureTestingModule({imports: [ScrollingModule, OverlayModule]});
 
     inject([Overlay, OverlayContainer], (overlay: Overlay, oc: OverlayContainer) => {
       positionBuilder = overlay.position();

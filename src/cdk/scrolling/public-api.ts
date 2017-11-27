@@ -6,7 +6,12 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
+import {ScrollingModule} from './scrolling-module';
+
 export * from './scroll-dispatcher';
 export * from './scrollable';
 export * from './viewport-ruler';
 export * from './scrolling-module';
+
+/** @deprecated Renamed to ScrollingModule. */
+export {ScrollingModule as ScrollDispatchModule};

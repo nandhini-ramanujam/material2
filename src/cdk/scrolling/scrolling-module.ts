@@ -17,4 +17,4 @@ import {PlatformModule} from '@angular/cdk/platform';
   declarations: [CdkScrollable],
   providers: [SCROLL_DISPATCHER_PROVIDER],
 })
-export class ScrollDispatchModule {}
+export class ScrollingModule {}
