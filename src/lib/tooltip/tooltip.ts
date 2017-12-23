@@ -39,7 +39,6 @@ import {
   NgZone,
   OnDestroy,
   Optional,
-  ViewContainerRef,
   ViewEncapsulation,
 } from '@angular/core';
 import {Observable} from 'rxjs/Observable';
@@ -185,7 +184,6 @@ export class MatTooltip implements OnDestroy {
     private _overlay: Overlay,
     private _elementRef: ElementRef,
     private _scrollDispatcher: ScrollDispatcher,
-    private _viewContainerRef: ViewContainerRef,
     private _ngZone: NgZone,
     private _platform: Platform,
     private _ariaDescriber: AriaDescriber,
@@ -293,7 +291,7 @@ export class MatTooltip implements OnDestroy {
   /** Create the tooltip to display */
   private _createTooltip(): void {
     const overlayRef = this._createOverlay();
-    const portal = new ComponentPortal(TooltipComponent, this._viewContainerRef);
+    const portal = new ComponentPortal(TooltipComponent);
 
     this._tooltipInstance = overlayRef.attach(portal).instance;
 
