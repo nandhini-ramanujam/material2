@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import {Component, Inject, ViewChild, TemplateRef} from '@angular/core';
+import {Component, Inject, TemplateRef} from '@angular/core';
 import {DOCUMENT} from '@angular/common';
 import {MatDialog, MatDialogConfig, MatDialogRef, MAT_DIALOG_DATA} from '@angular/material';
 
@@ -28,12 +28,12 @@ export class DialogDemo {
     panelClass: 'custom-overlay-pane-class',
     hasBackdrop: true,
     backdropClass: '',
-    width: '',
-    height: '',
-    minWidth: '',
-    minHeight: '',
+    width: defaultDialogConfig.width,
+    height: defaultDialogConfig.height,
+    minWidth: defaultDialogConfig.minWidth,
+    minHeight: defaultDialogConfig.minHeight,
     maxWidth: defaultDialogConfig.maxWidth,
-    maxHeight: '',
+    maxHeight: defaultDialogConfig.maxHeight,
     position: {
       top: '',
       bottom: '',
@@ -45,8 +45,6 @@ export class DialogDemo {
     }
   };
   numTemplateOpens = 0;
-
-  @ViewChild(TemplateRef) template: TemplateRef<any>;
 
   constructor(public dialog: MatDialog, @Inject(DOCUMENT) doc: any) {
     // Possible useful example for the open and closeAll events.
@@ -79,9 +77,9 @@ export class DialogDemo {
     dialogRef.componentInstance.actionsAlignment = this.actionsAlignment;
   }
 
-  openTemplate() {
+  openTemplate(template: TemplateRef<any>) {
     this.numTemplateOpens++;
-    this.dialog.open(this.template, this.config);
+    this.dialog.open(template, this.config);
   }
 }
 
