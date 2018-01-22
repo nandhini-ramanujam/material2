@@ -19,7 +19,7 @@ import {TooltipPosition} from '@angular/material';
   preserveWhitespaces: false,
 })
 export class TooltipDemo {
-  position: TooltipPosition = 'below';
+  position: TooltipPosition = 'after';
   message: string = 'Here is the tooltip';
   tooltips: string[] = [];
   disabled = false;

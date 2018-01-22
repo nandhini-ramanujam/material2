@@ -36,8 +36,10 @@ export class OverlayRef implements PortalOutlet {
 
   constructor(
       private _portalOutlet: PortalOutlet,
+      private _host: HTMLElement,
       private _pane: HTMLElement,
       private _config: ImmutableObject<OverlayConfig>,
+      private _document: Document,
       private _ngZone: NgZone,
       private _keyboardDispatcher: OverlayKeyboardDispatcher) {
 
@@ -49,6 +51,15 @@ export class OverlayRef implements PortalOutlet {
   /** The overlay's HTML element */
   get overlayElement(): HTMLElement {
     return this._pane;
+  }
+
+  /**
+   * Wrapper around the panel element. Can be used for advanced
+   * positioning where a wrapper with specific styling is
+   * required around the overlay pane.
+   */
+  get hostElement(): HTMLElement {
+    return this._host;
   }
 
   attach<T>(portal: ComponentPortal<T>): ComponentRef<T>;
@@ -81,9 +92,10 @@ export class OverlayRef implements PortalOutlet {
     // Update the position once the zone is stable so that the overlay will be fully rendered
     // before attempting to position it, as the position may depend on the size of the rendered
     // content.
-    this._ngZone.onStable.asObservable().pipe(take(1)).subscribe(() => {
-      this.updatePosition();
-    });
+    this._ngZone.onStable
+      .asObservable()
+      .pipe(take(1))
+      .subscribe(() => this.updatePosition());
 
     // Enable pointer events for the overlay pane element.
     this._togglePointerEvents(true);
@@ -95,7 +107,7 @@ export class OverlayRef implements PortalOutlet {
     if (this._config.panelClass) {
       // We can't do a spread here, because IE doesn't support setting multiple classes.
       if (Array.isArray(this._config.panelClass)) {
-        this._config.panelClass.forEach(cls => this._pane.classList.add(cls));
+        this._config.panelClass.forEach(cssClass => this._pane.classList.add(cssClass));
       } else {
         this._pane.classList.add(this._config.panelClass);
       }
@@ -163,6 +175,11 @@ export class OverlayRef implements PortalOutlet {
     this._attachments.complete();
     this._backdropClick.complete();
     this._keydownEvents.complete();
+
+    if (this._host && this._host.parentNode) {
+      this._host.parentNode.removeChild(this._host);
+      this._host = null!;
+    }
 
     if (isAttached) {
       this._detachments.next();
@@ -259,7 +276,7 @@ export class OverlayRef implements PortalOutlet {
 
   /** Attaches a backdrop for this overlay. */
   private _attachBackdrop() {
-    this._backdropElement = document.createElement('div');
+    this._backdropElement = this._document.createElement('div');
     this._backdropElement.classList.add('cdk-overlay-backdrop');
 
     if (this._config.backdropClass) {
@@ -268,7 +285,7 @@ export class OverlayRef implements PortalOutlet {
 
     // Insert the backdrop before the pane in the DOM order,
     // in order to handle stacked overlays properly.
-    this._pane.parentElement!.insertBefore(this._backdropElement, this._pane);
+    this._host.parentElement!.insertBefore(this._backdropElement, this._host);
 
     // Forward backdrop clicks such that the consumer of the overlay can perform whatever
     // action desired when such a click occurs (usually closing the overlay).
@@ -292,8 +309,8 @@ export class OverlayRef implements PortalOutlet {
    * in its original DOM position.
    */
   private _updateStackingOrder() {
-    if (this._pane.nextSibling) {
-      this._pane.parentNode!.appendChild(this._pane);
+    if (this._host.nextSibling) {
+      this._host.parentNode!.appendChild(this._host);
     }
   }
 
@@ -331,9 +348,7 @@ export class OverlayRef implements PortalOutlet {
       // Run this outside the Angular zone because there's nothing that Angular cares about.
       // If it were to run inside the Angular zone, every test that used Overlay would have to be
       // either async or fakeAsync.
-      this._ngZone.runOutsideAngular(() => {
-        setTimeout(finishDetach, 500);
-      });
+      this._ngZone.runOutsideAngular(() => setTimeout(finishDetach, 500));
     }
   }
 }

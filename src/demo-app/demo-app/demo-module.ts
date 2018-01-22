@@ -58,6 +58,7 @@ import {TypographyDemo} from '../typography/typography-demo';
 import {DemoApp, Home} from './demo-app';
 import {DEMO_APP_ROUTES} from './routes';
 import {TableDemoModule} from '../table/table-demo-module';
+import {ConnectedOverlayDemo, DemoOverlay} from '../connected-overlay/connected-overlay-demo';
 
 @NgModule({
   imports: [
@@ -120,6 +121,9 @@ import {TableDemoModule} from '../table/table-demo-module';
     ToolbarDemo,
     TooltipDemo,
     TypographyDemo,
+    ExpansionDemo,
+    ConnectedOverlayDemo,
+    DemoOverlay,
   ],
   providers: [
     {provide: OverlayContainer, useClass: FullscreenOverlayContainer},
@@ -133,6 +137,7 @@ import {TableDemoModule} from '../table/table-demo-module';
     RotiniPanel,
     ScienceJoke,
     SpagettiPanel,
+    DemoOverlay,
   ],
 })
 export class DemoModule {}

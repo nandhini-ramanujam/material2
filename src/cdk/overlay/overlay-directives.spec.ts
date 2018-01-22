@@ -6,7 +6,7 @@ import {dispatchKeyboardEvent} from '@angular/cdk/testing';
 import {ESCAPE} from '@angular/cdk/keycodes';
 import {CdkConnectedOverlay, OverlayModule, CdkOverlayOrigin} from './index';
 import {OverlayContainer} from './overlay-container';
-import {ConnectedPositionStrategy} from './position/connected-position-strategy';
+import {FlexibleConnectedPositionStrategy} from './position/flexible-connected-position-strategy';
 import {ConnectedOverlayPositionChange} from './position/connected-position';
 
 
@@ -80,13 +80,11 @@ describe('Overlay directives', () => {
     let testComponent: ConnectedOverlayDirectiveTest =
         fixture.debugElement.componentInstance;
     let overlayDirective = testComponent.connectedOverlayDirective;
-
     let strategy =
-        <ConnectedPositionStrategy> overlayDirective.overlayRef.getConfig().positionStrategy;
-    expect(strategy instanceof ConnectedPositionStrategy).toBe(true);
+      overlayDirective.overlayRef.getConfig().positionStrategy as FlexibleConnectedPositionStrategy;
 
-    let positions = strategy.positions;
-    expect(positions.length).toBeGreaterThan(0);
+    expect(strategy instanceof FlexibleConnectedPositionStrategy).toBe(true);
+    expect(strategy.positions.length).toBeGreaterThan(0);
   });
 
   it('should set and update the `dir` attribute', () => {
@@ -139,7 +137,7 @@ describe('Overlay directives', () => {
       fixture.componentInstance.isOpen = true;
       fixture.detectChanges();
 
-      const pane = overlayContainerElement.children[0] as HTMLElement;
+      const pane = overlayContainerElement.querySelector('.cdk-overlay-pane') as HTMLElement;
       expect(pane.style.width).toEqual('250px');
     });
 
@@ -148,7 +146,7 @@ describe('Overlay directives', () => {
       fixture.componentInstance.isOpen = true;
       fixture.detectChanges();
 
-      const pane = overlayContainerElement.children[0] as HTMLElement;
+      const pane = overlayContainerElement.querySelector('.cdk-overlay-pane') as HTMLElement;
       expect(pane.style.height).toEqual('100vh');
     });
 
@@ -157,7 +155,7 @@ describe('Overlay directives', () => {
       fixture.componentInstance.isOpen = true;
       fixture.detectChanges();
 
-      const pane = overlayContainerElement.children[0] as HTMLElement;
+      const pane = overlayContainerElement.querySelector('.cdk-overlay-pane') as HTMLElement;
       expect(pane.style.minWidth).toEqual('250px');
     });
 
@@ -166,7 +164,7 @@ describe('Overlay directives', () => {
       fixture.componentInstance.isOpen = true;
       fixture.detectChanges();
 
-      const pane = overlayContainerElement.children[0] as HTMLElement;
+      const pane = overlayContainerElement.querySelector('.cdk-overlay-pane') as HTMLElement;
       expect(pane.style.minHeight).toEqual('500px');
     });
 
@@ -198,18 +196,13 @@ describe('Overlay directives', () => {
     });
 
     it('should set the offsetX', () => {
-      const trigger = fixture.debugElement.query(By.css('button')).nativeElement;
-      const startX = trigger.getBoundingClientRect().left;
-
       fixture.componentInstance.offsetX = 5;
       fixture.componentInstance.isOpen = true;
       fixture.detectChanges();
 
-      const pane = overlayContainerElement.children[0] as HTMLElement;
+      const pane = overlayContainerElement.querySelector('.cdk-overlay-pane') as HTMLElement;
 
-      expect(pane.style.left)
-          .toBe(startX + 5 + 'px',
-              `Expected overlay translateX to equal the original X + the offsetX.`);
+      expect(pane.style.transform).toContain('translateX(5px)');
 
       fixture.componentInstance.isOpen = false;
       fixture.detectChanges();
@@ -218,9 +211,7 @@ describe('Overlay directives', () => {
       fixture.componentInstance.isOpen = true;
       fixture.detectChanges();
 
-      expect(pane.style.left)
-          .toBe(startX + 15 + 'px',
-              `Expected overlay directive to reflect new offsetX if it changes.`);
+      expect(pane.style.transform).toContain('translateX(15px)');
     });
 
     it('should set the offsetY', () => {
@@ -233,12 +224,9 @@ describe('Overlay directives', () => {
       fixture.componentInstance.isOpen = true;
       fixture.detectChanges();
 
-      // expected y value is the starting y + trigger height + offset y
-      // 30 + 20 + 45 = 95px
-      const pane = overlayContainerElement.children[0] as HTMLElement;
+      const pane = overlayContainerElement.querySelector('.cdk-overlay-pane') as HTMLElement;
 
-      expect(pane.style.top)
-          .toBe('95px', `Expected overlay translateY to equal the start Y + height + offsetY.`);
+      expect(pane.style.transform).toContain('translateY(45px)');
 
       fixture.componentInstance.isOpen = false;
       fixture.detectChanges();
@@ -246,8 +234,7 @@ describe('Overlay directives', () => {
       fixture.componentInstance.offsetY = 55;
       fixture.componentInstance.isOpen = true;
       fixture.detectChanges();
-      expect(pane.style.top)
-          .toBe('105px', `Expected overlay directive to reflect new offsetY if it changes.`);
+      expect(pane.style.transform).toContain('translateY(55px)');
     });
 
   });

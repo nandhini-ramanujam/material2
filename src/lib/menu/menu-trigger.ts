@@ -10,7 +10,7 @@ import {isFakeMousedownFromScreenReader} from '@angular/cdk/a11y';
 import {Direction, Directionality} from '@angular/cdk/bidi';
 import {LEFT_ARROW, RIGHT_ARROW} from '@angular/cdk/keycodes';
 import {
-  ConnectedPositionStrategy,
+  FlexibleConnectedPositionStrategy,
   HorizontalConnectionPos,
   Overlay,
   OverlayRef,
@@ -309,7 +309,7 @@ export class MatMenuTrigger implements AfterContentInit, OnDestroy {
     if (!this._overlayRef) {
       this._portal = new TemplatePortal(this.menu.templateRef, this._viewContainerRef);
       const config = this._getOverlayConfig();
-      this._subscribeToPositions(config.positionStrategy as ConnectedPositionStrategy);
+      this._subscribeToPositions(config.positionStrategy as FlexibleConnectedPositionStrategy);
       this._overlayRef = this._overlay.create(config);
     }
 
@@ -335,8 +335,8 @@ export class MatMenuTrigger implements AfterContentInit, OnDestroy {
    * on the menu based on the new position. This ensures the animation origin is always
    * correct, even if a fallback position is used for the overlay.
    */
-  private _subscribeToPositions(position: ConnectedPositionStrategy): void {
-    this._positionSubscription = position.onPositionChange.subscribe(change => {
+  private _subscribeToPositions(position: FlexibleConnectedPositionStrategy): void {
+    this._positionSubscription = position.positionChanges.subscribe(change => {
       const posX: MenuPositionX = change.connectionPair.overlayX === 'start' ? 'after' : 'before';
       const posY: MenuPositionY = change.connectionPair.overlayY === 'top' ? 'below' : 'above';
 
@@ -349,7 +349,7 @@ export class MatMenuTrigger implements AfterContentInit, OnDestroy {
    * to the trigger.
    * @returns ConnectedPositionStrategy
    */
-  private _getPosition(): ConnectedPositionStrategy {
+  private _getPosition(): FlexibleConnectedPositionStrategy {
     let [originX, originFallbackX]: HorizontalConnectionPos[] =
         this.menu.xPosition === 'before' ? ['end', 'start'] : ['start', 'end'];
 
@@ -372,20 +372,25 @@ export class MatMenuTrigger implements AfterContentInit, OnDestroy {
     }
 
     return this._overlay.position()
-        .connectedTo(this._element, {originX, originY}, {overlayX, overlayY})
-        .withDirection(this.dir)
-        .withOffsetY(offsetY)
-        .withFallbackPosition(
-            {originX: originFallbackX, originY},
-            {overlayX: overlayFallbackX, overlayY})
-        .withFallbackPosition(
-            {originX, originY: originFallbackY},
-            {overlayX, overlayY: overlayFallbackY},
-            undefined, -offsetY)
-        .withFallbackPosition(
-            {originX: originFallbackX, originY: originFallbackY},
-            {overlayX: overlayFallbackX, overlayY: overlayFallbackY},
-            undefined, -offsetY);
+        .flexibleConnectedTo(this._element)
+        .withPositions([
+          {originX, originY, overlayX, overlayY, offsetY},
+          {originX: originFallbackX, originY, overlayX: overlayFallbackX, overlayY, offsetY},
+          {
+            originX,
+            originY: originFallbackY,
+            overlayX,
+            overlayY: overlayFallbackY,
+            offsetY: -offsetY
+          },
+          {
+            originX: originFallbackX,
+            originY: originFallbackY,
+            overlayX: overlayFallbackX,
+            overlayY: overlayFallbackY,
+            offsetY: -offsetY
+          }
+        ]);
   }
 
   /** Cleans up the active subscriptions. */

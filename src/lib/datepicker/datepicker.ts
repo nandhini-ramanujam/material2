@@ -382,26 +382,38 @@ export class MatDatepicker<D> implements OnDestroy {
     const fallbackOffset = this._datepickerInput._getPopupFallbackOffset();
 
     return this._overlay.position()
-      .connectedTo(this._datepickerInput.getPopupConnectionElementRef(),
-        {originX: 'start', originY: 'bottom'},
-        {overlayX: 'start', overlayY: 'top'}
-      )
-      .withFallbackPosition(
-        {originX: 'start', originY: 'top'},
-        {overlayX: 'start', overlayY: 'bottom'},
-        undefined,
-        fallbackOffset
-      )
-      .withFallbackPosition(
-        {originX: 'end', originY: 'bottom'},
-        {overlayX: 'end', overlayY: 'top'}
-      )
-      .withFallbackPosition(
-        {originX: 'end', originY: 'top'},
-        {overlayX: 'end', overlayY: 'bottom'},
-        undefined,
-        fallbackOffset
-      );
+      .flexibleConnectedTo(this._datepickerInput.getPopupConnectionElementRef())
+      .withFlexibleHeight(false)
+      .withFlexibleWidth(false)
+      .withViewportMargin(8)
+      .withPositions([
+        {
+          originX: 'start',
+          originY: 'bottom',
+          overlayX: 'start',
+          overlayY: 'top'
+        },
+        {
+          originX: 'start',
+          originY: 'top',
+          overlayX: 'start',
+          overlayY: 'bottom',
+          offsetY: fallbackOffset
+        },
+        {
+          originX: 'end',
+          originY: 'bottom',
+          overlayX: 'end',
+          overlayY: 'top'
+        },
+        {
+          originX: 'end',
+          originY: 'top',
+          overlayX: 'end',
+          overlayY: 'bottom',
+          offsetY: fallbackOffset
+        }
+      ]);
   }
 
   /**

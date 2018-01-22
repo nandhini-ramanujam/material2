@@ -432,12 +432,12 @@ describe('MatTooltip', () => {
       tooltipDirective.position = 'after';
       expect(tooltipDirective._getOrigin().main).toEqual(rightOrigin);
 
-      // Test expectations in LTR
+      // Test expectations in RTL
       dir.value = 'rtl';
       tooltipDirective.position = 'before';
-      expect(tooltipDirective._getOrigin().main).toEqual(rightOrigin);
-      tooltipDirective.position = 'after';
       expect(tooltipDirective._getOrigin().main).toEqual(leftOrigin);
+      tooltipDirective.position = 'after';
+      expect(tooltipDirective._getOrigin().main).toEqual(rightOrigin);
     });
 
     it('should consistently position before and after overlay position in ltr and rtl dir', () => {
@@ -452,12 +452,12 @@ describe('MatTooltip', () => {
       tooltipDirective.position = 'after';
       expect(tooltipDirective._getOverlayPosition().main).toEqual(rightOverlayPosition);
 
-      // Test expectations in LTR
+      // Test expectations in RTL
       dir.value = 'rtl';
       tooltipDirective.position = 'before';
-      expect(tooltipDirective._getOverlayPosition().main).toEqual(rightOverlayPosition);
-      tooltipDirective.position = 'after';
       expect(tooltipDirective._getOverlayPosition().main).toEqual(leftOverlayPosition);
+      tooltipDirective.position = 'after';
+      expect(tooltipDirective._getOverlayPosition().main).toEqual(rightOverlayPosition);
     });
 
     it('should have consistent left transform origin in any dir', () => {

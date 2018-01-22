@@ -4,6 +4,7 @@ import {OverlayModule, Overlay, OverlayRef, GlobalPositionStrategy} from '../ind
 
 describe('GlobalPositonStrategy', () => {
   let element: HTMLElement;
+  let wrapper: HTMLElement;
   let strategy: GlobalPositionStrategy;
   let hasOverlayAttached: boolean;
 
@@ -14,20 +15,21 @@ describe('GlobalPositonStrategy', () => {
       strategy = overlay.position().global();
     })();
 
+    wrapper = document.createElement('div');
     element = document.createElement('div');
-    document.body.appendChild(element);
+    strategy = new GlobalPositionStrategy();
     hasOverlayAttached = true;
+    wrapper.appendChild(element);
+    document.body.appendChild(wrapper);
     strategy.attach({
       overlayElement: element,
+      hostElement: wrapper,
       hasAttached: () => hasOverlayAttached
     } as OverlayRef);
   });
 
   afterEach(() => {
-    if (element.parentNode) {
-      element.parentNode.removeChild(element);
-    }
-
+    wrapper.parentNode!.removeChild(wrapper);
     strategy.dispose();
   });
 
@@ -121,17 +123,6 @@ describe('GlobalPositonStrategy', () => {
     let parent = element.parentNode as HTMLElement;
 
     expect(parent.classList.contains('cdk-global-overlay-wrapper')).toBe(true);
-  });
-
-
-  it('should remove the parent wrapper from the DOM', () => {
-    strategy.apply();
-
-    expect(document.body.contains(element.parentNode!)).toBe(true);
-
-    strategy.dispose();
-
-    expect(document.body.contains(element.parentNode!)).toBe(false);
   });
 
   it('should set the element width', () => {
