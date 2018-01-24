@@ -583,6 +583,7 @@ describe('MatDatepicker', () => {
 
         expect(inputEl.classList).toContain('ng-pristine');
 
+        inputEl.focus();
         dispatchFakeEvent(inputEl, 'input');
         fixture.detectChanges();
 
@@ -1018,6 +1019,7 @@ describe('MatDatepicker', () => {
         expect(testComponent.onInput).not.toHaveBeenCalled();
         expect(testComponent.onDateInput).not.toHaveBeenCalled();
 
+        inputEl.focus();
         dispatchFakeEvent(inputEl, 'input');
         fixture.detectChanges();
 
@@ -1063,8 +1065,17 @@ describe('MatDatepicker', () => {
           expect(testComponent.onDateChange).toHaveBeenCalled();
           expect(testComponent.onInput).not.toHaveBeenCalled();
           expect(testComponent.onDateInput).toHaveBeenCalled();
-        })
-      );
+        }));
+
+        it('should not dispatch the `dateInput` event if the `input` event is ' +
+          'fired on a non-focused input', () => {
+            expect(testComponent.onDateInput).not.toHaveBeenCalled();
+
+            dispatchFakeEvent(inputEl, 'input');
+            fixture.detectChanges();
+
+            expect(testComponent.onDateInput).not.toHaveBeenCalled();
+          });
     });
 
     describe('with ISO 8601 strings as input', () => {
