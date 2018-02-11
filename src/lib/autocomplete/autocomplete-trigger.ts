@@ -330,11 +330,15 @@ export class MatAutocompleteTrigger implements ControlValueAccessor, OnDestroy {
     // filter out all of the extra events, we save the value on focus and between
     // `input` events, and we check whether it changed.
     // See: https://connect.microsoft.com/IE/feedback/details/885747/
-    if (this._canOpen() && this._previousValue !== value &&
-      document.activeElement === event.target) {
+    if (this._previousValue !== value) {
+      // We still want to propagate any value changes, otherwise we can miss
+      // out on cases like the browser autofilling the input value.
       this._previousValue = value;
       this._onChange(value);
-      this.openPanel();
+
+      if (this._canOpen() && document.activeElement === event.target) {
+        this.openPanel();
+      }
     }
   }
 
