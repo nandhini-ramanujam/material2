@@ -23,7 +23,7 @@ import {Subscription} from 'rxjs/Subscription';
 import {Observable} from 'rxjs/Observable';
 import {CdkScrollable} from '@angular/cdk/scrolling';
 import {isElementScrolledOutsideView, isElementClippedByScrolling} from './scroll-clip';
-import {OverlayRef} from '../overlay-ref';
+import {OverlayRefBase} from '../overlay-ref-base';
 
 
 
@@ -36,7 +36,7 @@ import {OverlayRef} from '../overlay-ref';
  */
 export class ConnectedPositionStrategy implements PositionStrategy {
   /** The overlay to which this strategy is attached. */
-  private _overlayRef: OverlayRef;
+  private _overlayRef: OverlayRefBase;
 
   /** Layout direction of the position strategy. */
   private _dir = 'ltr';
@@ -99,7 +99,7 @@ export class ConnectedPositionStrategy implements PositionStrategy {
   }
 
   /** Attach this position strategy to an overlay. */
-  attach(overlayRef: OverlayRef): void {
+  attach(overlayRef: OverlayRefBase): void {
     this._overlayRef = overlayRef;
     this._pane = overlayRef.overlayElement;
     this._resizeSubscription.unsubscribe();
