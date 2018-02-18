@@ -33,6 +33,7 @@ import {
   OnInit,
 } from '@angular/core';
 import {Observable} from 'rxjs/Observable';
+import {Subject} from 'rxjs/Subject';
 import {merge} from 'rxjs/observable/merge';
 import {Subscription} from 'rxjs/Subscription';
 import {matMenuAnimations} from './menu-animations';
@@ -43,6 +44,7 @@ import {MatMenuContent} from './menu-content';
 import {MenuPositionX, MenuPositionY} from './menu-positions';
 import {coerceBooleanProperty} from '@angular/cdk/coercion';
 import {FocusOrigin} from '@angular/cdk/a11y';
+import {AnimationEvent} from '@angular/animations';
 
 
 /** Default `mat-menu` options that can be overridden. */
@@ -96,6 +98,9 @@ export class MatMenu implements OnInit, AfterContentInit, MatMenuPanel, OnDestro
 
   /** Current state of the panel animation. */
   _panelAnimationState: 'void' | 'enter' = 'void';
+
+  /** Emits whenever an animation on the menu completes. */
+  _animationDone = new Subject<void>();
 
   /** Parent menu of the current menu panel. */
   parentMenu: MatMenuPanel | undefined;
@@ -307,7 +312,12 @@ export class MatMenu implements OnInit, AfterContentInit, MatMenuPanel, OnDestro
   }
 
   /** Callback that is invoked when the panel animation completes. */
-  _onAnimationDone(_event: AnimationEvent) {
-    // @deletion-target 6.0.0 Not being used anymore. To be removed.
+  _onAnimationDone(event: AnimationEvent) {
+    // After the initial expansion is done, trigger the second phase of the enter animation.
+    if (event.toState === 'enter-start') {
+      this._panelAnimationState = 'enter';
+    }
+
+    this._animationDone.next();
   }
 }
