@@ -317,40 +317,40 @@ export class OverlayRef implements PortalOutlet {
   detachBackdrop(): void {
     let backdropToDetach = this._backdropElement;
 
-    if (backdropToDetach) {
-      let finishDetach = () => {
-        // It may not be attached to anything in certain cases (e.g. unit tests).
-        if (backdropToDetach && backdropToDetach.parentNode) {
-          backdropToDetach.parentNode.removeChild(backdropToDetach);
-        }
+    if (!backdropToDetach) {
+      return;
+    }
 
-        // It is possible that a new portal has been attached to this overlay since we started
-        // removing the backdrop. If that is the case, only clear the backdrop reference if it
-        // is still the same instance that we started to remove.
-        if (this._backdropElement == backdropToDetach) {
-          this._backdropElement = null;
-        }
-      };
-
-      backdropToDetach.classList.remove('cdk-overlay-backdrop-showing');
-
-      if (this._config.backdropClass) {
-        backdropToDetach.classList.remove(this._config.backdropClass);
+    let finishDetach = () => {
+      // It may not be attached to anything in certain cases (e.g. unit tests).
+      if (backdropToDetach && backdropToDetach.parentNode) {
+        backdropToDetach.parentNode.removeChild(backdropToDetach);
       }
 
-      backdropToDetach.addEventListener('transitionend', finishDetach);
+      // It is possible that a new portal has been attached to this overlay since we started
+      // removing the backdrop. If that is the case, only clear the backdrop reference if it
+      // is still the same instance that we started to remove.
+      if (this._backdropElement == backdropToDetach) {
+        this._backdropElement = null;
+      }
+    };
 
-      // If the backdrop doesn't have a transition, the `transitionend` event won't fire.
-      // In this case we make it unclickable and we try to remove it after a delay.
-      backdropToDetach.style.pointerEvents = 'none';
+    backdropToDetach.classList.remove('cdk-overlay-backdrop-showing');
 
-      // Run this outside the Angular zone because there's nothing that Angular cares about.
-      // If it were to run inside the Angular zone, every test that used Overlay would have to be
-      // either async or fakeAsync.
-      this._ngZone.runOutsideAngular(() => {
-        setTimeout(finishDetach, 500);
-      });
-    }
+    this._ngZone.runOutsideAngular(() => {
+      backdropToDetach!.addEventListener('transitionend', finishDetach);
+    });
+
+    // If the backdrop doesn't have a transition, the `transitionend` event won't fire.
+    // In this case we make it unclickable and we try to remove it after a delay.
+    backdropToDetach.style.pointerEvents = 'none';
+
+    // Run this outside the Angular zone because there's nothing that Angular cares about.
+    // If it were to run inside the Angular zone, every test that used Overlay would have to be
+    // either async or fakeAsync.
+    this._ngZone.runOutsideAngular(() => {
+      setTimeout(finishDetach, 500);
+    });
   }
 }
 
