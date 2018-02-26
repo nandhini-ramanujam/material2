@@ -14,6 +14,7 @@ import {
   OnDestroy,
   ViewEncapsulation,
   Inject,
+  Optional,
 } from '@angular/core';
 import {
   CanDisable,
@@ -23,6 +24,7 @@ import {
 } from '@angular/material/core';
 import {Subject} from 'rxjs/Subject';
 import {DOCUMENT} from '@angular/common';
+import {MAT_MENU_PANEL, MatMenuPanel} from './menu-panel';
 
 // Boilerplate for applying mixins to MatMenuItem.
 /** @docs-private */
@@ -71,7 +73,8 @@ export class MatMenuItem extends _MatMenuItemMixinBase
   constructor(
     private _elementRef: ElementRef,
     @Inject(DOCUMENT) document?: any,
-    private _focusMonitor?: FocusMonitor) {
+    private _focusMonitor?: FocusMonitor,
+    @Inject(MAT_MENU_PANEL) @Optional() private _parentMenu?: MatMenuPanel<MatMenuItem>) {
 
     // @deletion-target 6.0.0 make `_focusMonitor` and `document` required params.
     super();
@@ -81,6 +84,10 @@ export class MatMenuItem extends _MatMenuItemMixinBase
       // to show the focus style for menu items only when the focus was not caused by a
       // mouse or touch interaction.
       _focusMonitor.monitor(this._getHostElement(), false);
+    }
+
+    if (_parentMenu && _parentMenu.addItem) {
+      _parentMenu.addItem(this);
     }
 
     this._document = document;
@@ -98,6 +105,10 @@ export class MatMenuItem extends _MatMenuItemMixinBase
   ngOnDestroy() {
     if (this._focusMonitor) {
       this._focusMonitor.stopMonitoring(this._getHostElement());
+    }
+
+    if (this._parentMenu && this._parentMenu.removeItem) {
+      this._parentMenu.removeItem(this);
     }
 
     this._hovered.complete();

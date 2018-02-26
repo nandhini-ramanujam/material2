@@ -17,7 +17,6 @@ import {
   ChangeDetectionStrategy,
   Component,
   ContentChild,
-  ContentChildren,
   ElementRef,
   EventEmitter,
   Inject,
@@ -25,7 +24,6 @@ import {
   Input,
   OnDestroy,
   Output,
-  QueryList,
   TemplateRef,
   ViewChild,
   ViewEncapsulation,
@@ -35,14 +33,16 @@ import {
 import {Observable} from 'rxjs/Observable';
 import {merge} from 'rxjs/observable/merge';
 import {Subscription} from 'rxjs/Subscription';
+import {Subject} from 'rxjs/Subject';
 import {matMenuAnimations} from './menu-animations';
 import {throwMatMenuInvalidPositionX, throwMatMenuInvalidPositionY} from './menu-errors';
 import {MatMenuItem} from './menu-item';
-import {MatMenuPanel} from './menu-panel';
+import {MatMenuPanel, MAT_MENU_PANEL} from './menu-panel';
 import {MatMenuContent} from './menu-content';
 import {MenuPositionX, MenuPositionY} from './menu-positions';
 import {coerceBooleanProperty} from '@angular/cdk/coercion';
 import {FocusOrigin} from '@angular/cdk/a11y';
+import {AnimationEvent} from '@angular/animations';
 
 
 /** Default `mat-menu` options that can be overridden. */
@@ -79,17 +79,26 @@ const MAT_MENU_BASE_ELEVATION = 2;
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
   preserveWhitespaces: false,
+  exportAs: 'matMenu',
   animations: [
     matMenuAnimations.transformMenu,
     matMenuAnimations.fadeInItems
   ],
-  exportAs: 'matMenu'
+  providers: [
+    {provide: MAT_MENU_PANEL, useExisting: MatMenu}
+  ]
 })
-export class MatMenu implements OnInit, AfterContentInit, MatMenuPanel, OnDestroy {
+export class MatMenu implements OnInit, AfterContentInit, MatMenuPanel<MatMenuItem>, OnDestroy {
   private _keyManager: FocusKeyManager<MatMenuItem>;
   private _xPosition: MenuPositionX = this._defaultOptions.xPosition;
   private _yPosition: MenuPositionY = this._defaultOptions.yPosition;
   private _previousElevation: string;
+
+  /** Menu items inside the current menu. */
+  private _items: MatMenuItem[] = [];
+
+  /** Emits whenever the amount of menu items changes. */
+  private _itemChanges = new Subject<MatMenuItem[]>();
 
   /** Subscription to tab events on the menu panel */
   private _tabSubscription = Subscription.EMPTY;
@@ -99,6 +108,12 @@ export class MatMenu implements OnInit, AfterContentInit, MatMenuPanel, OnDestro
 
   /** Current state of the panel animation. */
   _panelAnimationState: 'void' | 'enter' = 'void';
+
+  /** Emits whenever an animation on the menu completes. */
+  _animationDone = new Subject<AnimationEvent>();
+
+  /** Whether the menu is animating. */
+  _isAnimating: boolean;
 
   /** Parent menu of the current menu panel. */
   parentMenu: MatMenuPanel | undefined;
@@ -133,9 +148,6 @@ export class MatMenu implements OnInit, AfterContentInit, MatMenuPanel, OnDestro
 
   /** @docs-private */
   @ViewChild(TemplateRef) templateRef: TemplateRef<any>;
-
-  /** List of the items inside of a menu. */
-  @ContentChildren(MatMenuItem) items: QueryList<MatMenuItem>;
 
   /**
    * Menu content that will be rendered lazily.
@@ -202,7 +214,7 @@ export class MatMenu implements OnInit, AfterContentInit, MatMenuPanel, OnDestro
   }
 
   ngAfterContentInit() {
-    this._keyManager = new FocusKeyManager<MatMenuItem>(this.items).withWrap().withTypeAhead();
+    this._keyManager = new FocusKeyManager<MatMenuItem>(this._items).withWrap().withTypeAhead();
     this._tabSubscription = this._keyManager.tabOut.subscribe(() => this.close.emit('keydown'));
   }
 
@@ -213,16 +225,10 @@ export class MatMenu implements OnInit, AfterContentInit, MatMenuPanel, OnDestro
 
   /** Stream that emits whenever the hovered menu item changes. */
   _hovered(): Observable<MatMenuItem> {
-    if (this.items) {
-      return this.items.changes.pipe(
-        startWith(this.items),
-        switchMap(items => merge(...items.map(item => item._hovered)))
-      );
-    }
-
-    return this._ngZone.onStable
-      .asObservable()
-      .pipe(take(1), switchMap(() => this._hovered()));
+    return this._itemChanges.pipe(
+      startWith(this._items),
+      switchMap(items => merge(...items.map(item => item._hovered)))
+    );
   }
 
   /** Handle a keyboard event from the menu, delegating to the appropriate action. */
@@ -300,6 +306,35 @@ export class MatMenu implements OnInit, AfterContentInit, MatMenuPanel, OnDestro
     }
   }
 
+  /**
+   * Registers a menu item with the menu.
+   * @docs-private
+   */
+  addItem(item: MatMenuItem) {
+    // We register the items through this method, rather than picking them up through
+    // `ContentChildren`, because we need the items to be picked up by their closest
+    // `mat-menu` ancestor. If we used `@ContentChildren(MatMenuItem, {descendants: true})`,
+    // all descendant items will bleed into the top-level menu in the case where the consumer
+    // has `mat-menu` instances nested inside each other.
+    if (this._items.indexOf(item) === -1) {
+      this._items.push(item);
+      this._itemChanges.next(this._items);
+    }
+  }
+
+  /**
+   * Removes an item from the menu.
+   * @docs-private
+   */
+  removeItem(item: MatMenuItem) {
+    const index = this._items.indexOf(item);
+
+    if (this._items.indexOf(item) > -1) {
+      this._items.splice(index, 1);
+      this._itemChanges.next(this._items);
+    }
+  }
+
   /** Starts the enter animation. */
   _startAnimation() {
     // @deletion-target 6.0.0 Combine with _resetAnimation.
@@ -313,7 +348,8 @@ export class MatMenu implements OnInit, AfterContentInit, MatMenuPanel, OnDestro
   }
 
   /** Callback that is invoked when the panel animation completes. */
-  _onAnimationDone(_event: AnimationEvent) {
-    // @deletion-target 6.0.0 Not being used anymore. To be removed.
+  _onAnimationDone(event: AnimationEvent) {
+    this._animationDone.next(event);
+    this._isAnimating = false;
   }
 }

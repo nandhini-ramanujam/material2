@@ -21,6 +21,9 @@ import {
 } from '@angular/cdk/overlay';
 import {TemplatePortal} from '@angular/cdk/portal';
 import {filter} from 'rxjs/operators/filter';
+import {delay} from 'rxjs/operators/delay';
+import {take} from 'rxjs/operators/take';
+import {takeUntil} from 'rxjs/operators/takeUntil';
 import {
   AfterContentInit,
   Directive,
@@ -140,6 +143,7 @@ export class MatMenuTrigger implements AfterContentInit, OnDestroy {
               @Optional() @Self() private _menuItemInstance: MatMenuItem,
               @Optional() private _dir: Directionality,
               // TODO(crisbeto): make the _focusMonitor required when doing breaking changes.
+              // @deletion-target 6.0.0
               private _focusMonitor?: FocusMonitor) {
 
     if (_menuItemInstance) {
@@ -159,15 +163,7 @@ export class MatMenuTrigger implements AfterContentInit, OnDestroy {
       }
     });
 
-    if (this.triggersSubmenu()) {
-      // Subscribe to changes in the hovered item in order to toggle the panel.
-      this._hoverSubscription = this._parentMenu._hovered()
-          .pipe(filter(active => active === this._menuItemInstance))
-          .subscribe(() => {
-            this._openedByMouse = true;
-            this.openMenu();
-          });
-    }
+    this._handleHover();
   }
 
   ngOnDestroy() {
@@ -457,6 +453,34 @@ export class MatMenuTrigger implements AfterContentInit, OnDestroy {
     } else {
       this.toggleMenu();
     }
+  }
+
+  /** Handles the cases where the user hovers over the trigger. */
+  private _handleHover() {
+    // Subscribe to changes in the hovered item in order to toggle the panel.
+    if (!this.triggersSubmenu()) {
+      return;
+    }
+
+    this._hoverSubscription = this._parentMenu._hovered()
+      // Since we might have multiple competing triggers for the same menu (e.g. a sub-menu
+      // with different data and triggers), we have to delay it by a tick to ensure that
+      // it won't be closed immediately after it is opened.
+      .pipe(filter(active => active === this._menuItemInstance), delay(0))
+      .subscribe(() => {
+        this._openedByMouse = true;
+
+        // If the same menu is used between multiple triggers, it might still be animating
+        // while the new trigger tries to re-open it. Wait for the animation to finish
+        // before doing so. Also interrupt if the user moves to another item.
+        if (this.menu instanceof MatMenu && this.menu._isAnimating) {
+          this.menu._animationDone
+            .pipe(take(1), takeUntil(this._parentMenu._hovered()))
+            .subscribe(() => this.openMenu());
+        } else {
+          this.openMenu();
+        }
+      });
   }
 
 }
